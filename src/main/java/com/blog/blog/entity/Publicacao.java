@@ -1,12 +1,15 @@
 package com.blog.blog.entity;
 
-import java.security.Timestamp;
+
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -28,9 +31,9 @@ public class Publicacao {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "usuario_id", nullable = false)
-    private Long idUsuario;
+    private Usuario usuario;
 
     @Column(nullable = false)
     private String descricao;
@@ -39,8 +42,8 @@ public class Publicacao {
     private int curtidas;
 
     @CreationTimestamp
-    private Timestamp dataCriacao;
+    private LocalDateTime dataCriacao;
 
     @UpdateTimestamp
-    private Timestamp dataAlteracao;
+    private LocalDateTime dataAlteracao;
 }
