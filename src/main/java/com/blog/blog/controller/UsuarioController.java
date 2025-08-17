@@ -30,7 +30,7 @@ public class UsuarioController {
         return service.create(usuario);
     }
 
-    @GetMapping("/listAll")
+    @GetMapping("/list/all")
     public List<Usuario> listAll() {
         return service.listAll();
     }
