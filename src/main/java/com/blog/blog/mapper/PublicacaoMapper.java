@@ -13,7 +13,6 @@ public class PublicacaoMapper {
 
     private final UsuarioMapper usuarioMapper;
 
-    // Injetando o UsuarioMapper para mapear o usuário dentro da publicação
     public PublicacaoMapper(UsuarioMapper usuarioMapper) {
         this.usuarioMapper = usuarioMapper;
     }
@@ -22,9 +21,8 @@ public class PublicacaoMapper {
         if (publicacao == null) return null;
 
         PublicacaoDto dto = new PublicacaoDto();
-        BeanUtils.copyProperties(publicacao, dto); // copia id, descricao, curtidas, datas
+        BeanUtils.copyProperties(publicacao, dto);
         
-        // mapeia o usuário dentro do DTO
         UsuarioDto usuarioDto = usuarioMapper.toDto(publicacao.getUsuario());
         dto.setUsuario(usuarioDto);
 
@@ -37,7 +35,6 @@ public class PublicacaoMapper {
         Publicacao publicacao = new Publicacao();
         BeanUtils.copyProperties(dto, publicacao);
 
-        // mapeia o usuário do DTO para a entidade
         Usuario usuario = usuarioMapper.toEntity(dto.getUsuario());
         publicacao.setUsuario(usuario);
 
