@@ -3,6 +3,9 @@ package com.blog.blog.service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -21,15 +24,16 @@ public class PublicacaoService {
         return repository.save(publicacao);
     }
 
-    // Lista todas as publicações
-    public List<Publicacao> listAll(){
-        Sort sort = Sort.by("dataCriacao").descending();
-        return repository.findAll(sort);
+    // Lista todas as publicações em páginas
+    public Page<Publicacao> listarPaginado(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("dataCriacao").descending());
+        return repository.findAll(pageable);
     }
 
-    // Lista todas as publicações de um usuário
-    public List<Publicacao> listByUserId(Long usuarioId) {
-        return repository.findByUsuarioIdOrderByDataCriacaoDesc(usuarioId);
+    // Lista todas as publicações de um usuário em páginas
+    public Page<Publicacao> listarPorUsuario(Long usuarioId, int paginaInicial, int tamanhoPagina) {
+        Pageable pageable = PageRequest.of(paginaInicial, tamanhoPagina, Sort.by("dataCriacao").descending());
+        return repository.findByUsuarioId(usuarioId, pageable);
     }
 
     // Altera uma publicação
@@ -48,8 +52,8 @@ public class PublicacaoService {
     }
 
     // Deleta uma publicação
-    public List<Publicacao> delete(Long id){
+    public Page<Publicacao> delete(Long id){
         repository.deleteById(id);
-        return  listAll();
+        return  listarPaginado(0, 10);
     }
 }

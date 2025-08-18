@@ -4,6 +4,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.blog.blog.entity.Usuario;
@@ -24,39 +25,26 @@ import org.springframework.web.bind.annotation.PathVariable;
 public class UsuarioController {
     private final UsuarioService service;
 
-    private static boolean validation(String string){
-        if (string == null || string.equalsIgnoreCase("")) {
-            return false;
-        }
-        return true;
-    }
-
-    @PostMapping("/create")
+    @PostMapping()
     public ResponseEntity<?> create(@RequestBody Usuario usuario){
-        if (!validation(usuario.getSenha())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("O usuário precisa de uma senha cadastrada");
-        }else if (!validation(usuario.getNome())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("O usuário precisa de um nome cadastrado");
-        }else if (!validation(usuario.getEmail())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("O usuário precisa de um email cadastrado");
-        }
         return ResponseEntity.ok(service.create(usuario));
     }
 
-    @GetMapping("/list/all")
-    public ResponseEntity<?> listAll() {
-        return ResponseEntity.ok(service.listAll());
+    @GetMapping("/all")
+    public ResponseEntity<?> listAll(
+        @RequestParam(defaultValue = "0") int paginaInicial,
+        @RequestParam(defaultValue = "10") int tamanhoPagina)
+    {
+        return ResponseEntity.ok(service.listPage(paginaInicial, tamanhoPagina));
     }
 
-    @PutMapping("/update")
+    @GetMapping("/user/{id}")
+    public ResponseEntity<?> findUser(@PathVariable("id") Long id){
+        return ResponseEntity.ok(service.findUser(id));
+    }
+
+    @PutMapping()
     public ResponseEntity<?> update(@RequestBody Usuario usuario) {
-        if (!validation(usuario.getSenha())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("A senha não pode ser alterada para algo vazio");
-        }else if (!validation(usuario.getNome())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("O nome não pode ser alterado para algo vazio");
-        }else if (!validation(usuario.getEmail())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("O email não pode ser alterad para algo vazio");
-        }
         return ResponseEntity.ok(service.update(usuario));
     }
 
