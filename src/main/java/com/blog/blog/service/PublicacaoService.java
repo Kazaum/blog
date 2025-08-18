@@ -1,15 +1,17 @@
 package com.blog.blog.service;
 
 import java.time.LocalDateTime;
-import java.util.List;
-
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import com.blog.blog.dto.PublicacaoDto;
 import com.blog.blog.entity.Publicacao;
+import com.blog.blog.mapper.PublicacaoMapper;
 import com.blog.blog.repository.PublicacaoRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -18,42 +20,49 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PublicacaoService {
     private final PublicacaoRepository repository;
+    private final PublicacaoMapper mapper;
 
     // Cria uma nova publicação
-    public Publicacao create(Publicacao publicacao){
-        return repository.save(publicacao);
+    public PublicacaoDto create(Publicacao publicacao){
+        return mapper.toDto(repository.save(publicacao));
     }
 
     // Lista todas as publicações em páginas
-    public Page<Publicacao> listarPaginado(int page, int size) {
+    public Page<PublicacaoDto> listarPaginado(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("dataCriacao").descending());
-        return repository.findAll(pageable);
+        Page<Publicacao> publicacoes = repository.findAll(pageable);
+        Page<PublicacaoDto> newPublicacoes = publicacoes.map(publicacao -> 
+            mapper.toDto(publicacao)
+        );
+
+        return newPublicacoes;
     }
 
     // Lista todas as publicações de um usuário em páginas
-    public Page<Publicacao> listarPorUsuario(Long usuarioId, int paginaInicial, int tamanhoPagina) {
+    public Page<PublicacaoDto> listarPorUsuario(Long usuarioId, int paginaInicial, int tamanhoPagina) {
         Pageable pageable = PageRequest.of(paginaInicial, tamanhoPagina, Sort.by("dataCriacao").descending());
-        return repository.findByUsuarioId(usuarioId, pageable);
+        Page<Publicacao> publicacoes = repository.findByUsuarioId(usuarioId, pageable);
+        Page<PublicacaoDto> newPublicacoes = publicacoes.map(publicacao -> 
+            mapper.toDto(publicacao)
+        );
+
+        return newPublicacoes;
     }
 
     // Altera uma publicação
-    public Publicacao update(Publicacao publicacaoAtualizada) {
+    public PublicacaoDto update(Publicacao publicacaoAtualizada) {
         Publicacao existente = repository.findById(publicacaoAtualizada.getId())
-                .orElseThrow(() -> new RuntimeException("Publicação não encontrada"));
+        .orElseThrow(() -> new RuntimeException("Publicação não encontrada"));
+        BeanUtils.copyProperties(publicacaoAtualizada, existente, "id", "dataCriacao", "usuario");
+        existente.setDataAlteracao(LocalDateTime.now());
 
-        publicacaoAtualizada.setDataCriacao(existente.getDataCriacao());
-        publicacaoAtualizada.setDataAlteracao(LocalDateTime.now());
-        publicacaoAtualizada.setId(publicacaoAtualizada.getId());
-        if (publicacaoAtualizada.getUsuario() == null) {
-            publicacaoAtualizada.setUsuario(existente.getUsuario());
-        }
-
-        return repository.save(publicacaoAtualizada);
+        return mapper.toDto(repository.save(existente));
     }
 
     // Deleta uma publicação
-    public Page<Publicacao> delete(Long id){
+    public Page<PublicacaoDto> delete(Long id){
         repository.deleteById(id);
+
         return  listarPaginado(0, 10);
     }
 }
