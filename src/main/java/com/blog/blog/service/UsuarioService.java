@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.blog.blog.dto.UsuarioDto;
 import com.blog.blog.entity.Usuario;
+import com.blog.blog.mapper.UsuarioMapper;
 import com.blog.blog.repository.UsuarioRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -17,15 +18,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class UsuarioService {
     private final UsuarioRepository repository;
-
-    private static UsuarioDto convertUsuario(Usuario usuario){
-        return new UsuarioDto(usuario.getId(), usuario.getNome(), usuario.getEmail());
-    }
+    private final UsuarioMapper mapper;
     
     // Cria um novo usuario
-    public Page<UsuarioDto> create(Usuario usuario){
-        repository.save(usuario);
-        return listPage(0, 10);
+    public UsuarioDto create(Usuario usuario){
+        return mapper.toDto(repository.save(usuario));
     }
 
     // Retorna todos os usuarios em páginas
@@ -33,7 +30,7 @@ public class UsuarioService {
         Pageable pageable = PageRequest.of(paginaInicial, tamanhoPagina, Sort.by("nome").descending());
         Page<Usuario> usuarios = repository.findAll(pageable);
         Page<UsuarioDto> newUsuarios = usuarios.map(usuario -> 
-            convertUsuario(usuario)
+            mapper.toDto(usuario)
         );
         return newUsuarios;
     }
@@ -43,7 +40,7 @@ public class UsuarioService {
         Usuario usuario = repository.findById(idUsuario)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado com id: " + idUsuario));
 
-        return convertUsuario(usuario);
+        return mapper.toDto(usuario);
     }
 
     // Atualiza os dados de um usuário
@@ -54,7 +51,7 @@ public class UsuarioService {
         BeanUtils.copyProperties(usuario, existingUser, "id");
 
         Usuario updatedUser = repository.save(existingUser);
-        return convertUsuario(updatedUser);
+        return mapper.toDto(updatedUser);
     }
 
     // Deleta um usuário
